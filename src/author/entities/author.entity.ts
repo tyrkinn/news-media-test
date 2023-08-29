@@ -14,7 +14,7 @@ export class Author {
 
   @Column()
   @IsString()
-  avatar_url: string;
+  avatarUrl: string;
 
   @OneToMany(() => Article, (article) => article.author)
   articles: Article[];
