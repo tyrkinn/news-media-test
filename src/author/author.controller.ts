@@ -31,13 +31,13 @@ export class AuthorController {
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const author = await this.authorService.findOne(id);
-    console.log(author);
     if (author === null) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
         error: `User with id ${id} does not exists`,
       });
     }
+    return author;
   }
 
   @Patch(':id')
