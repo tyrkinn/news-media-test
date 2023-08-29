@@ -1,4 +1,9 @@
-import { ConflictException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -33,14 +38,35 @@ export class AuthorService {
   }
 
   async findOne(id: number) {
-    return await this.authorRepository.findOneBy({ id });
+    const author = await this.authorRepository.findOneBy({ id });
+    if (author === null) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        error: `author with id ${id} does not exists`,
+      });
+    }
+    return author;
   }
 
   async update(id: number, updateAuthorDto: UpdateAuthorDto) {
+    const author = await this.authorRepository.findOneBy({ id });
+    if (author === null) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        error: `author with id ${id} does not exists`,
+      });
+    }
     return await this.authorRepository.update(id, updateAuthorDto);
   }
 
   async remove(id: number) {
+    const author = await this.authorRepository.findOneBy({ id });
+    if (author === null) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        error: `author with id ${id} does not exists`,
+      });
+    }
     return await this.authorRepository.delete(id);
   }
 }

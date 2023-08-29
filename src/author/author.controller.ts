@@ -7,14 +7,11 @@ import {
   Param,
   Delete,
   ParseIntPipe,
-  NotFoundException,
-  HttpStatus,
 } from '@nestjs/common';
 import { AuthorService } from './author.service';
 import { CreateAuthorDto } from './dto/create-author.dto';
 import { UpdateAuthorDto } from './dto/update-author.dto';
 
-@Controller('author')
 @Controller('authors')
 export class AuthorController {
   constructor(private readonly authorService: AuthorService) {}
@@ -31,14 +28,7 @@ export class AuthorController {
 
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    const author = await this.authorService.findOne(id);
-    if (author === null) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        error: `User with id ${id} does not exists`,
-      });
-    }
-    return author;
+    return await this.authorService.findOne(id);
   }
 
   @Patch(':id')
