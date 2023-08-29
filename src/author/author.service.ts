@@ -9,12 +9,25 @@ import { UpdateAuthorDto } from './dto/update-author.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Author } from './entities/author.entity';
 import { Repository } from 'typeorm';
+import { Article } from 'src/article/entities/article.entity';
 
 @Injectable()
 export class AuthorService {
   constructor(
     @InjectRepository(Author) private authorRepository: Repository<Author>,
+    @InjectRepository(Article) private articlesRepository: Repository<Article>,
   ) {}
+
+  private async tryGetAuthor(id: number): Promise<Author> {
+    const author = await this.authorRepository.findOneBy({ id });
+    if (author === null) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        error: `Author with id ${id} does not exists`,
+      });
+    }
+    return author;
+  }
 
   async create(createAuthorDto: CreateAuthorDto) {
     const existingAuthor = await this.authorRepository.findOne({
@@ -38,35 +51,27 @@ export class AuthorService {
   }
 
   async findOne(id: number) {
-    const author = await this.authorRepository.findOneBy({ id });
-    if (author === null) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        error: `author with id ${id} does not exists`,
-      });
-    }
-    return author;
+    return await this.tryGetAuthor(id);
   }
 
   async update(id: number, updateAuthorDto: UpdateAuthorDto) {
-    const author = await this.authorRepository.findOneBy({ id });
-    if (author === null) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        error: `author with id ${id} does not exists`,
-      });
-    }
+    await this.tryGetAuthor(id);
     return await this.authorRepository.update(id, updateAuthorDto);
   }
 
   async remove(id: number) {
-    const author = await this.authorRepository.findOneBy({ id });
-    if (author === null) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        error: `author with id ${id} does not exists`,
-      });
-    }
+    await this.tryGetAuthor(id);
     return await this.authorRepository.delete(id);
+  }
+
+  async allArticles(id: number) {
+    await this.tryGetAuthor(id);
+    return await this.articlesRepository.find({
+      where: {
+        author: {
+          id,
+        },
+      },
+    });
   }
 }
