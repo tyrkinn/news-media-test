@@ -43,4 +43,9 @@ export class AuthorController {
   async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.authorService.remove(id);
   }
+
+  @Get(':id/articles')
+  async getArticles(@Param('id', ParseIntPipe) id: number) {
+    return await this.authorService.allArticles(id);
+  }
 }
