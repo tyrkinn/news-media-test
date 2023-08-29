@@ -61,6 +61,6 @@
 1. Переименовать `.env.example` в `.env`
 
 2.
-```shell
+```bash
 $ docker-compose up -d
 ```
