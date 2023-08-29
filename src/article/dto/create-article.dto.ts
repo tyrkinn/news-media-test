@@ -8,5 +8,5 @@ export class CreateArticleDto {
   content: string;
 
   @IsNumber()
-  author_id: number;
+  authorId: number;
 }
