@@ -9,12 +9,36 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Article } from './entities/article.entity';
 import { Repository } from 'typeorm';
+import { Author } from 'src/author/entities/author.entity';
 
 @Injectable()
 export class ArticleService {
   constructor(
     @InjectRepository(Article) private articlesRepository: Repository<Article>,
+    @InjectRepository(Author) private authorRepository: Repository<Author>,
   ) {}
+
+  private async tryGetArticle(id: number): Promise<Article> {
+    const article = await this.articlesRepository.findOneBy({ id });
+    if (article === null) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        error: `Article with id ${id} does not exists`,
+      });
+    }
+    return article;
+  }
+
+  private async tryGetAuthor(id: number): Promise<Author> {
+    const author = await this.authorRepository.findOneBy({ id });
+    if (author === null) {
+      throw new NotFoundException({
+        status: HttpStatus.NOT_FOUND,
+        error: `Author with id ${id} does not exists`,
+      });
+    }
+    return author;
+  }
 
   async create(createArticleDto: CreateArticleDto) {
     const existingArticle = await this.articlesRepository.findOneBy({
@@ -27,7 +51,9 @@ export class ArticleService {
         element: 'title',
       });
     }
+    const author = await this.tryGetAuthor(createArticleDto.authorId);
     const newArticle = this.articlesRepository.create(createArticleDto);
+    newArticle.author = author;
     return await this.articlesRepository.save(newArticle);
   }
 
@@ -36,7 +62,12 @@ export class ArticleService {
   }
 
   async findOne(id: number) {
-    const article = await this.articlesRepository.findOneBy({ id });
+    const article = await this.articlesRepository.findOne({
+      where: { id },
+      relations: {
+        author: true,
+      },
+    });
     if (article === null) {
       throw new NotFoundException({
         status: HttpStatus.NOT_FOUND,
@@ -47,24 +78,12 @@ export class ArticleService {
   }
 
   async update(id: number, updateArticleDto: UpdateArticleDto) {
-    const article = await this.articlesRepository.findOneBy({ id });
-    if (article === null) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        error: `Article with id ${id} does not exists`,
-      });
-    }
+    await this.tryGetArticle(id);
     return await this.articlesRepository.update(id, updateArticleDto);
   }
 
   async remove(id: number) {
-    const article = await this.articlesRepository.findOneBy({ id });
-    if (article === null) {
-      throw new NotFoundException({
-        status: HttpStatus.NOT_FOUND,
-        error: `Article with id ${id} does not exists`,
-      });
-    }
-    this.articlesRepository.delete(id);
+    await this.tryGetArticle(id);
+    return await this.articlesRepository.delete(id);
   }
 }
