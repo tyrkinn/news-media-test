@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as path from 'path';
+import { AuthorModule } from './author/author.module';
 
 @Module({
   imports: [
@@ -18,10 +18,11 @@ import * as path from 'path';
         username: configService.getOrThrow('POSTGRES_USER'),
         password: configService.getOrThrow('POSTGRES_PASSWORD'),
         database: configService.getOrThrow('POSTGRES_DB'),
-        entities: [path.join(__dirname, '..', '**', '*.entity.ts')],
+        entities: [__dirname + '/../**/*.entity.js'],
         synchronize: true,
       }),
     }),
+    AuthorModule,
   ],
   controllers: [AppController],
   providers: [AppService],
